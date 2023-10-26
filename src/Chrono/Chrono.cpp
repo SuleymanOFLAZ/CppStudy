@@ -19,55 +19,58 @@ version with at least one invalid date (e.g., 2004, 13, –5).
 
 using namespace std;
 
-// Version from 9.4.1
+// Version from 9.4.2
 
 struct Date{
-    int y;
-    int m;
-    int d;
+    int y, m , d;
+    class Invalid{};
+    Date(int y, int m, int d);
+    void add_day(int n);
 };
 
-bool init_day(Date& dd, int y, int m, int d)
+bool is_date_valid(int y, int m, int d)
 {
     if( (d < 1 || 31 < d) || (m < 1 || 12 < m) )
     {
         return false;
     }
 
-    dd.y = y;
-    dd.m = m;
-    dd.d = d;
-
-    return true;
+    return true;   
 }
 
-void add_day(Date& dd, int n)
+Date::Date(int yy, int mm, int dd)
+     : y{yy}, m {mm}, d{dd}
 {
-    int y = 0, m = 0, d = 0;
-    y = n / 365;
-    n -= y*365;
+    if(!is_date_valid(y, m, d)) throw Invalid{};
+}
 
-    m = n / 31;
-    n -= m*31;
-    d = n ;
+void Date::add_day(int n)
+{
+    int yy = 0, mm = 0, dd = 0;
+    yy = n / 365;
+    n -= yy*365;
 
-    if ( (dd.d+d) > 31 )
+    mm = n / 31;
+    n -= mm*31;
+    dd = n ;
+
+    if ( (d+dd) > 31 )
     {
-        m++;
-        d = (dd.d+d) % 31;
-        dd.d = 0;
+        mm++;
+        dd = (d+dd) % 31;
+        d = 0;
     }
 
-    if ( (dd.m+m) > 12 )
+    if ( (m+mm) > 12 )
     {
-        y++;
-        m = (dd.m+m) % 12; 
-        dd.m = 0;
+        yy++;
+        mm = (m+mm) % 12; 
+        m = 0;
     }
 
-    dd.y += y;
-    dd.m += m;
-    dd.d += d;
+    y += yy;
+    m += mm;
+    d += dd;
 }
 
 ostream& operator<<(ostream& os, Date& dd)
@@ -75,22 +78,34 @@ ostream& operator<<(ostream& os, Date& dd)
     return os << '(' << dd.y << ',' << dd.m << ',' << dd.d << ')' << '\n';
 }
 
+void error(int en)
+{
+    cout << "Error No: " << en << endl; 
+}
+
 int main(void)
 {
-    Date today;
-    init_day(today, 1978, 6, 25);
+    Date* date_Ptr;
+    try {
+        date_Ptr = new Date {1978, 6, 25};
+    }
+    catch (Date::Invalid){
+        error(1);
+    }
 
-    cout << today;
+    cout << *date_Ptr;
 
-    Date tomorrow = today;
-    add_day(tomorrow, 1);
+    Date tomorrow = *date_Ptr;
+    tomorrow.add_day(1);
 
     cout << tomorrow;
 
-    bool success = init_day(today, 1978, 6, -25);
-    if(success == false){
-        cout << "Initialize Error\n";
-
+    Date* date_Ptr2;
+    try {
+        date_Ptr2 = new Date  {1997, -7, 22};
+    }
+    catch (Date::Invalid){
+        error(1);
     }
 
     return 0;
